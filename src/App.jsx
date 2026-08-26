@@ -9,18 +9,10 @@ import MyGarage from './components/MyGarage';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
 import RentModal from './components/RentModal';
+import ContactForm from './components/ContactForm';
 
 function App() {
-  const [page, setPage] = useState(() => {
-    try {
-      const savedAdminUser = localStorage.getItem('admin_user');
-      const savedAdminToken = localStorage.getItem('admin_token');
-      if (savedAdminUser && savedAdminToken) {
-        return 'admin-dashboard';
-      }
-    } catch {}
-    return 'home';
-  });
+  const [page, setPage] = useState('home');
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const savedUser = localStorage.getItem('user');
@@ -217,7 +209,21 @@ function App() {
           <span className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => setPage('home')}>Home</span>
           <a href="#showroom" className="nav-link" onClick={() => setPage('home')}>Showroom</a>
           <span className={`nav-link ${page === 'garage' ? 'active' : ''}`} onClick={() => setPage('garage')}>My Garage</span>
-          <a href="#contact" className="nav-link" onClick={() => setPage('home')}>Contact</a>
+          <span
+            className={`nav-link ${page === 'contact' ? 'active' : ''}`}
+            onClick={() => {
+              if (page === 'home') {
+                const el = document.getElementById('contact');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                  return;
+                }
+              }
+              setPage('contact');
+            }}
+          >
+            Contact
+          </span>
         </nav>
 
         <div className="header-actions">
@@ -255,6 +261,14 @@ function App() {
         <span className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setMobileMenuOpen(false); }}>🏠 Home</span>
         <span className="nav-link" onClick={() => { setPage('home'); setMobileMenuOpen(false); }}>🚗 Showroom</span>
         <span className={`nav-link ${page === 'garage' ? 'active' : ''}`} onClick={() => { setPage('garage'); setMobileMenuOpen(false); }}>🔑 My Garage</span>
+        <span className={`nav-link ${page === 'contact' ? 'active' : ''}`} onClick={() => {
+          if (page === 'home') {
+            document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            setPage('contact');
+          }
+          setMobileMenuOpen(false);
+        }}>📬 Contact</span>
         {!currentUser && (
           <>
             <span className="nav-link" onClick={() => { setPage('login'); setMobileMenuOpen(false); }}>🔐 Login</span>
@@ -274,6 +288,11 @@ function App() {
         {page === 'forgot-password' && <ForgotPassword setPage={setPage} onOtpSent={(email) => { setResetEmail(email); setPage('reset-password'); }} />}
         {page === 'reset-password' && <ResetPassword setPage={setPage} resetEmail={resetEmail} />}
         {page === 'garage' && <MyGarage currentUser={currentUser} setPage={setPage} />}
+        {page === 'contact' && (
+          <div style={{ padding: '60px 20px', minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <ContactForm onSuccessNotification={showNotification} />
+          </div>
+        )}
       </main>
 
       {/* Rent Booking Modal */}
