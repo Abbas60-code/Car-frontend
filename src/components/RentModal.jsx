@@ -40,7 +40,7 @@ export default function RentModal({ car, currentUser, onClose, onBookingSuccess,
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:9000/api/bookings', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://car-backend-psi.vercel.app'}/api/bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

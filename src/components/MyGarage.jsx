@@ -13,7 +13,7 @@ export default function MyGarage({ currentUser, setPage }) {
       return;
     }
 
-    fetch('http://localhost:9000/api/bookings/my-bookings', {
+    fetch(`${import.meta.env.VITE_API_URL || 'https://car-backend-psi.vercel.app'}/api/bookings/my-bookings`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

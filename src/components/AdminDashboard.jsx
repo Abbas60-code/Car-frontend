@@ -5,7 +5,7 @@ import {
   Upload, X, Search, ChevronDown, AlertCircle, RefreshCw, Star
 } from 'lucide-react';
 
-const API = 'http://localhost:9000/api';
+const API = `${import.meta.env.VITE_API_URL || 'https://car-backend-psi.vercel.app'}/api`;
 
 const getToken = () => localStorage.getItem('admin_token') || localStorage.getItem('token');
 

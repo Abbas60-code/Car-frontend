@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, MapPin, Calendar, Compass, Shield, Award, Users, Star, ArrowRight, Sparkles } from 'lucide-react';
+import ContactForm from './ContactForm';
 
 export default function Home({ cars = [], onRentClick, onAdminSearch }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,7 +15,7 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
     const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
 
     setLoading(true);
-    fetch('http://localhost:9000/api/cars', { signal: controller.signal })
+    fetch(`${import.meta.env.VITE_API_URL || 'https://car-backend-psi.vercel.app'}/api/cars`, { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
         clearTimeout(timeout);
@@ -360,6 +361,11 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="contact-section" id="contact" style={{ padding: '80px 20px', position: 'relative', zIndex: 10 }}>
+        <ContactForm />
       </section>
 
       {/* CTA Section */}

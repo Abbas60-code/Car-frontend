@@ -217,6 +217,7 @@ function App() {
           <span className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => setPage('home')}>Home</span>
           <a href="#showroom" className="nav-link" onClick={() => setPage('home')}>Showroom</a>
           <span className={`nav-link ${page === 'garage' ? 'active' : ''}`} onClick={() => setPage('garage')}>My Garage</span>
+          <a href="#contact" className="nav-link" onClick={() => setPage('home')}>Contact</a>
         </nav>
 
         <div className="header-actions">
