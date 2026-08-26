@@ -78,8 +78,11 @@ function App() {
 
   useEffect(() => {
     const checkUrlForAdmin = () => {
-      if (window.location.hash === '#/admin' || window.location.pathname.endsWith('/admin')) {
+      if (window.location.hash === '#/admin' || window.location.hash === '#admin' || window.location.pathname.endsWith('/admin')) {
         window.location.hash = '';
+        if (window.location.pathname.endsWith('/admin')) {
+          try { window.history.replaceState(null, '', '/'); } catch (_) {}
+        }
         enterAdminPanelDirectly();
       }
     };

@@ -7,20 +7,34 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
   const [selectedBrand, setSelectedBrand] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [priceRange, setPriceRange] = useState(1000);
-  const [dbCars, setDbCars] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [dbCars, setDbCars] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('velocity_cars');
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('velocity_cars');
+      return !(cached && JSON.parse(cached).length > 0);
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+    const timeout = setTimeout(() => controller.abort(), 6000);
 
-    setLoading(true);
     fetch(`${import.meta.env.VITE_API_URL || 'https://car-backend-psi.vercel.app'}/api/cars`, { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
         clearTimeout(timeout);
-        if (data.success && Array.isArray(data.data)) {
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
           setDbCars(data.data);
+          try { sessionStorage.setItem('velocity_cars', JSON.stringify(data.data)); } catch (_) {}
         }
         setLoading(false);
       })
