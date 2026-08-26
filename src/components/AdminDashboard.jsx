@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   BarChart3, Car, Users, Calendar, TrendingUp, Settings,
   Plus, Edit2, Trash2, CheckCircle, XCircle, Clock, Shield,
-  Upload, X, Search, ChevronDown, AlertCircle, RefreshCw, Star
+  Upload, X, Search, ChevronDown, AlertCircle, RefreshCw, Star,
+  Mail, Phone, MessageSquare
 } from 'lucide-react';
 
 const API = `${import.meta.env.VITE_API_URL || 'https://car-backend-psi.vercel.app'}/api`;
@@ -613,6 +614,234 @@ function OverviewTab() {
   );
 }
 
+// ─── Inbox Tab ────────────────────────────────────────────────────────────────
+function InboxTab() {
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  const fetchMessages = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/contact`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.data)) {
+        setMessages(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch messages:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this message permanently?')) return;
+    try {
+      const res = await fetch(`${API}/contact/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setMessages(prev => prev.filter(m => m._id !== id));
+      } else {
+        alert(data.message || 'Failed to delete message');
+      }
+    } catch (err) {
+      alert('Error deleting message: ' + err.message);
+    }
+  };
+
+  const filtered = messages.filter(m =>
+    m.name?.toLowerCase().includes(search.toLowerCase()) ||
+    m.email?.toLowerCase().includes(search.toLowerCase()) ||
+    m.subject?.toLowerCase().includes(search.toLowerCase()) ||
+    m.message?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  if (loading) return <div style={{ textAlign: 'center', color: '#6b7280', padding: '60px 0' }}>Loading messages...</div>;
+
+  return (
+    <div>
+      {/* Top Header & Search Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: '360px' }}>
+          <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
+          <input
+            style={{
+              width: '100%',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '10px',
+              padding: '10px 14px 10px 38px',
+              color: '#fff',
+              fontSize: '14px',
+              outline: 'none',
+              boxSizing: 'border-box'
+            }}
+            placeholder="Search messages by name, email, subject..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <button
+          onClick={fetchMessages}
+          style={{
+            background: 'rgba(0,242,254,0.1)',
+            border: '1px solid rgba(0,242,254,0.3)',
+            color: '#00f2fe',
+            padding: '8px 16px',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          <RefreshCw size={14} /> Refresh Inbox ({messages.length})
+        </button>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div style={{
+          textAlign: 'center',
+          padding: '60px 20px',
+          background: 'rgba(18,20,29,0.8)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '16px',
+          color: '#9ca3af'
+        }}>
+          <Mail size={40} style={{ color: '#4b5563', marginBottom: '12px' }} />
+          <h3 style={{ color: '#fff', fontSize: '18px', margin: '0 0 6px' }}>No Messages Found</h3>
+          <p style={{ fontSize: '14px', margin: 0 }}>Contact form submissions will appear here.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {filtered.map(msg => (
+            <div
+              key={msg._id}
+              style={{
+                background: 'rgba(18,20,29,0.8)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: '16px',
+                padding: '24px',
+                backdropFilter: 'blur(10px)',
+                transition: 'border-color 0.2s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(0,242,254,0.3)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #00f2fe, #4facfe)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#0a0b10',
+                    fontWeight: 800,
+                    fontSize: '18px',
+                    flexShrink: 0
+                  }}>
+                    {msg.name?.[0]?.toUpperCase() || '?'}
+                  </div>
+                  <div>
+                    <h4 style={{ color: '#fff', fontSize: '16px', fontWeight: 700, margin: '0 0 4px' }}>
+                      {msg.name}
+                    </h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontSize: '13px', color: '#9ca3af' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Mail size={13} style={{ color: '#00f2fe' }} /> {msg.email}
+                      </span>
+                      {msg.phone && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Phone size={13} style={{ color: '#f59e0b' }} /> {msg.phone}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 500 }}>
+                    {new Date(msg.createdAt).toLocaleString()}
+                  </span>
+                  <button
+                    onClick={() => handleDelete(msg._id)}
+                    style={{
+                      background: 'rgba(239,68,68,0.1)',
+                      border: '1px solid rgba(239,68,68,0.3)',
+                      color: '#ef4444',
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Delete message"
+                  >
+                    <Trash2 size={13} /> Delete
+                  </button>
+                </div>
+              </div>
+
+              {msg.subject && (
+                <div style={{ marginBottom: '12px', fontSize: '14px', fontWeight: 700, color: '#00f2fe', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <MessageSquare size={14} /> Subject: {msg.subject}
+                </div>
+              )}
+
+              <div style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '12px',
+                padding: '16px',
+                color: '#e5e7eb',
+                fontSize: '14px',
+                lineHeight: '1.6',
+                whiteSpace: 'pre-wrap'
+              }}>
+                {msg.message}
+              </div>
+
+              <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                <a
+                  href={`mailto:${msg.email}?subject=Re: ${encodeURIComponent(msg.subject || 'Inquiry Response')}`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: 'rgba(0,242,254,0.1)',
+                    border: '1px solid rgba(0,242,254,0.25)',
+                    color: '#00f2fe',
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    textDecoration: 'none'
+                  }}
+                >
+                  <Mail size={13} /> Reply via Email
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Admin Dashboard ─────────────────────────────────────────────────────
 export default function AdminDashboard({ currentUser }) {
   const [tab, setTab] = useState('overview');
@@ -622,6 +851,7 @@ export default function AdminDashboard({ currentUser }) {
     { id: 'fleet', label: 'Fleet Management', icon: Car },
     { id: 'bookings', label: 'Bookings', icon: Calendar },
     { id: 'users', label: 'Users', icon: Users },
+    { id: 'inbox', label: 'Inbox', icon: Mail },
   ];
 
   const userId = (() => {
@@ -672,6 +902,7 @@ export default function AdminDashboard({ currentUser }) {
           {tab === 'fleet' && <FleetTab />}
           {tab === 'bookings' && <BookingsTab />}
           {tab === 'users' && <UsersTab currentUserId={userId} />}
+          {tab === 'inbox' && <InboxTab />}
         </div>
       </div>
 
