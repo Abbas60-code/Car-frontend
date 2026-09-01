@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Shield, Award, Users, Star, Zap, CheckCircle2, MapPin, Clock, Phone, 
   Mail, ChevronDown, ChevronUp, Sparkles, Car, Compass, ArrowRight, 
-  Globe, HeartPulse, Key, Building, Target, TrendingUp, Check, ExternalLink, MessageSquare
+  Globe, HeartPulse, Key, Building, Target, TrendingUp, Check, ExternalLink, MessageSquare, Calendar
 } from 'lucide-react';
 
 const STATS = [
