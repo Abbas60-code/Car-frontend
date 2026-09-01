@@ -304,8 +304,11 @@ function App() {
 
       {/* Render selected view */}
       <main style={{ flexGrow: 1 }}>
-        {page === 'home' && <Home onRentClick={handleRentCar} onAdminSearch={enterAdminPanelDirectly} />}
-        {page === 'about' && <About setPage={setPage} />}
+        {(page === 'home' || (!['about', 'showrooms', 'login', 'register', 'forgot-password', 'reset-password', 'garage', 'contact'].includes(page))) && (
+          <Home onRentClick={handleRentCar} onAdminSearch={enterAdminPanelDirectly} />
+        )}
+        {page === 'about' && <About setPage={setPage} initialTab="story" />}
+        {page === 'showrooms' && <About setPage={setPage} initialTab="showrooms" />}
         {page === 'login' && <Login setPage={setPage} onLoginSuccess={handleLoginSuccess} />}
         {page === 'register' && <Register setPage={setPage} onRegisterSuccess={handleRegisterSuccess} />}
         {page === 'forgot-password' && <ForgotPassword setPage={setPage} onOtpSent={(email) => { setResetEmail(email); setPage('reset-password'); }} />}
