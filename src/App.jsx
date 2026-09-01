@@ -10,6 +10,7 @@ import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
 import RentModal from './components/RentModal';
 import ContactForm from './components/ContactForm';
+import About from './components/About';
 
 function App() {
   const [page, setPage] = useState('home');
@@ -211,6 +212,7 @@ function App() {
         <nav className="nav-links">
           <span className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => setPage('home')}>Home</span>
           <a href="#showroom" className="nav-link" onClick={() => setPage('home')}>Showroom</a>
+          <span className={`nav-link ${page === 'about' ? 'active' : ''}`} onClick={() => setPage('about')}>About Us</span>
           <span className={`nav-link ${page === 'garage' ? 'active' : ''}`} onClick={() => setPage('garage')}>My Garage</span>
           <span
             className={`nav-link ${page === 'contact' ? 'active' : ''}`}
@@ -263,6 +265,7 @@ function App() {
       <nav className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
         <span className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setMobileMenuOpen(false); }}>🏠 Home</span>
         <span className="nav-link" onClick={() => { setPage('home'); setMobileMenuOpen(false); }}>🚗 Showroom</span>
+        <span className={`nav-link ${page === 'about' ? 'active' : ''}`} onClick={() => { setPage('about'); setMobileMenuOpen(false); }}>ℹ️ About Us</span>
         <span className={`nav-link ${page === 'garage' ? 'active' : ''}`} onClick={() => { setPage('garage'); setMobileMenuOpen(false); }}>🔑 My Garage</span>
         <span className={`nav-link ${page === 'contact' ? 'active' : ''}`} onClick={() => {
           if (page === 'home') {
@@ -286,6 +289,7 @@ function App() {
       {/* Render selected view */}
       <main style={{ flexGrow: 1 }}>
         {page === 'home' && <Home onRentClick={handleRentCar} onAdminSearch={enterAdminPanelDirectly} />}
+        {page === 'about' && <About setPage={setPage} />}
         {page === 'login' && <Login setPage={setPage} onLoginSuccess={handleLoginSuccess} />}
         {page === 'register' && <Register setPage={setPage} onRegisterSuccess={handleRegisterSuccess} />}
         {page === 'forgot-password' && <ForgotPassword setPage={setPage} onOtpSent={(email) => { setResetEmail(email); setPage('reset-password'); }} />}
@@ -327,6 +331,7 @@ function App() {
             <h4>Quick Links</h4>
             <ul>
               <li><span className="nav-link" onClick={() => setPage('home')}>Home</span></li>
+              <li><span className="nav-link" onClick={() => setPage('about')}>About Us</span></li>
               <li><a href="#showroom" className="nav-link" onClick={() => setPage('home')}>Showroom Fleet</a></li>
               <li><span className="nav-link" onClick={() => setPage('login')}>Member Login</span></li>
               <li><span className="nav-link" onClick={() => setPage('garage')}>My Garage</span></li>

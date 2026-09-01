@@ -83,20 +83,20 @@ export default function RentModal({ car, currentUser, onClose, onBookingSuccess,
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 9999,
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 9999,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
       backdropFilter: 'blur(8px)',
     }} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div style={{
         background: '#12141d', border: '1px solid rgba(0,242,254,0.25)',
         borderRadius: '24px', width: '100%', maxWidth: '560px',
-        maxHeight: '92vh', overflowY: 'auto', padding: '32px',
+        maxHeight: '92vh', overflowY: 'auto', padding: 'clamp(20px, 5vw, 32px)',
         boxShadow: '0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(0,242,254,0.1)',
         position: 'relative',
       }}>
         {/* Close Button */}
         <button onClick={onClose} style={{
-          position: 'absolute', top: '20px', right: '20px',
+          position: 'absolute', top: '16px', right: '16px',
           background: 'rgba(255,255,255,0.06)', border: 'none', color: '#9ca3af',
           borderRadius: '50%', width: '36px', height: '36px',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -127,7 +127,7 @@ export default function RentModal({ car, currentUser, onClose, onBookingSuccess,
           </div>
         ) : (
           <div>
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{ marginBottom: '20px', paddingRight: '36px' }}>
               <span style={{
                 background: 'rgba(0,242,254,0.1)', color: '#00f2fe',
                 border: '1px solid rgba(0,242,254,0.3)', padding: '4px 12px',
@@ -136,7 +136,7 @@ export default function RentModal({ car, currentUser, onClose, onBookingSuccess,
               }}>
                 Instant Reservation
               </span>
-              <h2 style={{ color: '#fff', fontSize: '24px', fontWeight: 800, margin: '10px 0 4px' }}>
+              <h2 style={{ color: '#fff', fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 800, margin: '10px 0 4px' }}>
                 Rent {car.name}
               </h2>
               <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
@@ -172,7 +172,7 @@ export default function RentModal({ car, currentUser, onClose, onBookingSuccess,
             )}
 
             <form onSubmit={handleBooking}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+              <div className="form-grid-2col" style={{ marginBottom: '20px' }}>
                 <div>
                   <label style={{ display: 'block', color: '#9ca3af', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '6px' }}>
                     Pickup Date

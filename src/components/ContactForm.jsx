@@ -118,7 +118,7 @@ export default function ContactForm({ onSuccessNotification }) {
       )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="form-grid-2col">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '13px', color: '#9ca3af', fontWeight: 500 }}>Full Name *</label>
             <div style={{ position: 'relative' }}>
@@ -172,7 +172,7 @@ export default function ContactForm({ onSuccessNotification }) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="form-grid-2col">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '13px', color: '#9ca3af', fontWeight: 500 }}>Phone Number</label>
             <div style={{ position: 'relative' }}>

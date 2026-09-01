@@ -1,28 +1,35 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, MapPin, Calendar, Compass, Shield, Award, Users, Star, ArrowRight, Sparkles } from 'lucide-react';
+import { Search, MapPin, Calendar, Compass, Shield, Award, Users, Star, ArrowRight, Sparkles, SlidersHorizontal, Zap } from 'lucide-react';
 import ContactForm from './ContactForm';
+import { defaultCars } from '../data/defaultCars';
+
+const CATEGORIES = [
+  { id: 'All', label: 'All Fleet', icon: '✨', count: 50, desc: 'Complete 50-vehicle luxury fleet' },
+  { id: 'Sports', label: 'Sports', icon: '🏎️', count: 10, desc: 'High-octane track & performance supercars' },
+  { id: 'Electric', label: 'Electric', icon: '⚡', count: 10, desc: 'Next-gen electric hypercars & GTs' },
+  { id: 'Luxury', label: 'Luxury', icon: '💎', count: 10, desc: 'Ultra-exclusive grand tourers & VIP limousines' },
+  { id: 'SUV', label: 'SUV', icon: '🚙', count: 10, desc: 'Super SUVs & high-end luxury off-roaders' },
+  { id: 'Executive', label: 'Executive', icon: '👔', count: 10, desc: 'Pinnacle business & flagship executive sedans' },
+];
 
 export default function Home({ cars = [], onRentClick, onAdminSearch }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
-  const [priceRange, setPriceRange] = useState(1000);
+  const [priceRange, setPriceRange] = useState(2500);
   const [dbCars, setDbCars] = useState(() => {
     try {
       const cached = sessionStorage.getItem('velocity_cars');
-      return cached ? JSON.parse(cached) : [];
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return defaultCars;
     } catch {
-      return [];
+      return defaultCars;
     }
   });
-  const [loading, setLoading] = useState(() => {
-    try {
-      const cached = sessionStorage.getItem('velocity_cars');
-      return !(cached && JSON.parse(cached).length > 0);
-    } catch {
-      return true;
-    }
-  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -67,13 +74,38 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
     checkAdminSearch(searchQuery);
   };
 
+  const allCarsList = useMemo(() => {
+    return (cars && cars.length > 0) ? cars : (dbCars && dbCars.length > 0 ? dbCars : defaultCars);
+  }, [cars, dbCars]);
+
+  // Extract unique brands from the fleet
+  const popularBrands = useMemo(() => {
+    const brandSet = new Set(['Porsche', 'Ferrari', 'Lamborghini', 'Tesla', 'Mercedes', 'BMW', 'Audi', 'Rolls-Royce', 'Bentley', 'Aston Martin']);
+    allCarsList.forEach(c => {
+      if (c.brand) brandSet.add(c.brand);
+    });
+    return Array.from(brandSet);
+  }, [allCarsList]);
+
+  // Compute counts per category dynamically
+  const categoryCounts = useMemo(() => {
+    const counts = { All: allCarsList.length, Sports: 0, Electric: 0, Luxury: 0, SUV: 0, Executive: 0 };
+    allCarsList.forEach(c => {
+      if (counts[c.type] !== undefined) {
+        counts[c.type] += 1;
+      }
+    });
+    return counts;
+  }, [allCarsList]);
+
   const filteredCars = useMemo(() => {
-    const list = (cars && cars.length > 0) ? cars : dbCars;
-    return list.filter((car) => {
+    return allCarsList.filter((car) => {
       const carName = car.name || '';
       const carBrand = car.brand || '';
-      const matchesSearch = carName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            carBrand.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = !searchQuery.trim() ||
+                            carName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            carBrand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (car.type && car.type.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesBrand = selectedBrand === 'All' || carBrand.toLowerCase() === selectedBrand.toLowerCase();
       const matchesType = selectedType === 'All' || car.type?.toLowerCase() === selectedType.toLowerCase();
       const carPrice = car.pricePerDay || car.price || 0;
@@ -81,7 +113,7 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
 
       return matchesSearch && matchesBrand && matchesType && matchesPrice;
     });
-  }, [cars, dbCars, searchQuery, selectedBrand, selectedType, priceRange]);
+  }, [allCarsList, searchQuery, selectedBrand, selectedType, priceRange]);
 
   const renderImageStyle = (image) => {
     if (!image) return { background: 'linear-gradient(135deg, #1e1e24 0%, #a82c35 100%)' };
@@ -90,6 +122,57 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
     }
     return { background: image };
   };
+
+  const isCategorizedSectionView = selectedType === 'All' && selectedBrand === 'All' && !searchQuery.trim() && priceRange >= 2500;
+
+  const renderCarCard = (car) => (
+    <div className="car-card" key={car.id || car._id || car.name}>
+      <div className="car-card-image" style={renderImageStyle(car.image)}>
+        <div className="car-tag">{car.type}</div>
+        <div className="car-card-specs-overlay">
+          <span>{car.speed}</span>
+          <span className="spec-dot"></span>
+          <span>{car.acceleration} (0-100)</span>
+        </div>
+      </div>
+
+      <div className="car-card-content">
+        <div className="car-card-rating">
+          <Star className="star-icon" size={14} fill="currentColor" />
+          <span>{car.rating || 4.9}</span>
+          <span className="review-count">({car.reviewsCount || car.reviews || 12} reviews)</span>
+        </div>
+
+        <h3 className="car-title">{car.name}</h3>
+
+        <div className="car-specs-grid">
+          <div className="spec-item">
+            <span className="spec-label">Trans</span>
+            <span className="spec-value">{car.transmission}</span>
+          </div>
+          <div className="spec-item">
+            <span className="spec-label">Engine</span>
+            <span className="spec-value">{car.fuel}</span>
+          </div>
+          <div className="spec-item">
+            <span className="spec-label">Seats</span>
+            <span className="spec-value">{car.seats} Seats</span>
+          </div>
+        </div>
+
+        <div className="car-card-footer">
+          <div>
+            <span className="price-value">${car.pricePerDay || car.price}</span>
+            <span className="price-period">/ day</span>
+          </div>
+          <button className="btn-rent-card" onClick={() => onRentClick(car)}>
+            <span>Rent Now</span>
+            <ArrowRight size={14} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="home-container">
@@ -103,21 +186,44 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
           </div>
           <h1>
             Experience the Thrill of <br />
-            <span className="gradient-text">Premium Velocity</span>
+            <span className="gradient-text">50 Premium Supercars</span>
           </h1>
           <p className="hero-subtitle">
-            Rent elite sports cars, state-of-the-art electric vehicles, and executive SUVs. Seamless booking with instant approval.
+            10 Vehicles in each of 5 world-class categories: Sports, Electric, Luxury, SUV, and Executive sedans. Instant booking approval.
           </p>
+
+          {/* Quick Category Jump Badges */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', flexWrap: 'wrap', margin: '20px 0 30px' }}>
+            {CATEGORIES.slice(1).map(cat => (
+              <a
+                key={cat.id}
+                href="#showroom"
+                onClick={() => setSelectedType(cat.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: '99px', padding: '6px 14px', fontSize: '13px', fontWeight: 600,
+                  color: '#f3f4f6', cursor: 'pointer', transition: 'all 0.2s',
+                }}
+              >
+                <span>{cat.icon}</span>
+                <span>{cat.label}</span>
+                <span style={{ fontSize: '11px', background: 'rgba(0,242,254,0.15)', color: '#00f2fe', padding: '1px 6px', borderRadius: '10px' }}>
+                  {categoryCounts[cat.id] || 10}
+                </span>
+              </a>
+            ))}
+          </div>
 
           {/* Quick Search Widget */}
           <div className="search-widget">
             <div className="widget-field">
               <Compass className="field-icon" />
               <div className="field-text">
-                <span className="field-label">Search Cars</span>
+                <span className="field-label">Search Fleet</span>
                 <input
                   type="text"
-                  placeholder="e.g. Porsche, Tesla..."
+                  placeholder="e.g. Porsche, Ferrari, Urus, Tesla..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -128,7 +234,7 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
             <div className="widget-field">
               <MapPin className="field-icon" />
               <div className="field-text">
-                <span className="field-label">Location</span>
+                <span className="field-label">Showroom Location</span>
                 <input type="text" placeholder="Select showroom" defaultValue="New York HQ" />
               </div>
             </div>
@@ -136,7 +242,7 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
             <div className="widget-field">
               <Calendar className="field-icon" />
               <div className="field-text">
-                <span className="field-label">Date & Time</span>
+                <span className="field-label">Rental Duration</span>
                 <input type="text" placeholder="Pick dates" defaultValue="Aug 25 - Aug 28" />
               </div>
             </div>
@@ -150,23 +256,66 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
 
       {/* Showroom Listings */}
       <section className="showroom-section" id="showroom">
-        <div className="section-header">
+        <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h2 className="section-title">Explore Our Premium Fleet</h2>
-            <p className="section-subtitle">Choose from the finest automotive engineering marvels in the world</p>
+            <h2 className="section-title">Explore Our 50-Car Fleet</h2>
+            <p className="section-subtitle">10 world-class engineering marvels in every single category</p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(0,242,254,0.08)', padding: '8px 18px', borderRadius: '99px', border: '1px solid rgba(0,242,254,0.2)' }}>
+            <span style={{ fontSize: '14px', color: '#00f2fe', fontWeight: 800 }}>{filteredCars.length}</span>
+            <span style={{ fontSize: '13px', color: '#9ca3af' }}>vehicles matched</span>
           </div>
         </div>
 
-        {/* Filter Controls */}
+        {/* ── Category Primary Tabs ────────────────────────────────────────── */}
+        <div style={{
+          display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '20px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          {CATEGORIES.map(cat => {
+            const isActive = selectedType === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedType(cat.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  background: isActive ? 'linear-gradient(135deg, rgba(0,242,254,0.2), rgba(79,172,254,0.15))' : 'rgba(255,255,255,0.04)',
+                  border: isActive ? '1px solid #00f2fe' : '1px solid rgba(255,255,255,0.08)',
+                  color: isActive ? '#00f2fe' : '#9ca3af',
+                  padding: '10px 18px', borderRadius: '12px',
+                  fontSize: '14px', fontWeight: isActive ? 700 : 500,
+                  cursor: 'pointer', whiteSpace: 'nowrap',
+                  boxShadow: isActive ? '0 0 20px rgba(0,242,254,0.2)' : 'none',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <span style={{ fontSize: '16px' }}>{cat.icon}</span>
+                <span>{cat.label}</span>
+                <span style={{
+                  fontSize: '11px',
+                  background: isActive ? '#00f2fe' : 'rgba(255,255,255,0.1)',
+                  color: isActive ? '#090a0f' : '#cbd5e1',
+                  fontWeight: 800, padding: '2px 8px', borderRadius: '99px',
+                }}>
+                  {categoryCounts[cat.id] || (cat.id === 'All' ? 50 : 10)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Secondary Brand & Price Filters ──────────────────────────────── */}
         <div className="filter-controls">
-          <div className="filter-group">
+          <div className="filter-group" style={{ overflowX: 'auto', paddingBottom: '4px', maxWidth: '100%' }}>
+            <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', alignSelf: 'center', marginRight: '4px' }}>Brand:</span>
             <button
               className={`filter-btn ${selectedBrand === 'All' ? 'active' : ''}`}
               onClick={() => setSelectedBrand('All')}
             >
-              All Brands
+              All
             </button>
-            {['Porsche', 'Tesla', 'BMW', 'Mercedes', 'Audi'].map((brand) => (
+            {popularBrands.map((brand) => (
               <button
                 key={brand}
                 className={`filter-btn ${selectedBrand === brand ? 'active' : ''}`}
@@ -178,24 +327,12 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
           </div>
 
           <div className="filter-group">
-            <select
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="filter-select"
-            >
-              <option value="All">All Categories</option>
-              <option value="Sports">Sports</option>
-              <option value="Electric">Electric</option>
-              <option value="Luxury">Luxury</option>
-              <option value="SUV">SUV</option>
-            </select>
-
             <div className="price-slider-wrapper">
               <span className="slider-label">Max Price: ${priceRange}/day</span>
               <input
                 type="range"
-                min="200"
-                max="600"
+                min="300"
+                max="2500"
                 step="50"
                 value={priceRange}
                 onChange={(e) => setPriceRange(Number(e.target.value))}
@@ -205,9 +342,9 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
           </div>
         </div>
 
-        {/* Fleet Grid */}
+        {/* ── Fleet Grid Display ─────────────────────────────────────────── */}
         {loading ? (
-          // ── Skeleton Cards ──────────────────────────────────
+          // Skeleton Cards
           <div className="fleet-grid">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="car-card" style={{ overflow: 'hidden' }}>
@@ -225,81 +362,101 @@ export default function Home({ cars = [], onRentClick, onAdminSearch }) {
                       background: 'rgba(255,255,255,0.06)',
                       borderRadius: '6px',
                       marginBottom: j === 2 ? 0 : '12px',
-                      animation: 'shimmer 1.4s infinite',
-                      backgroundSize: '200% 100%',
-                      backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 75%)',
                     }} />
                   ))}
-                  <div style={{
-                    display: 'flex', justifyContent: 'space-between', marginTop: '20px', paddingTop: '16px',
-                    borderTop: '1px solid rgba(255,255,255,0.05)',
-                  }}>
-                    <div style={{ height: '28px', width: '80px', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', animation: 'shimmer 1.4s infinite', backgroundSize: '200% 100%', backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 75%)' }} />
-                    <div style={{ height: '36px', width: '100px', background: 'rgba(255,255,255,0.06)', borderRadius: '10px', animation: 'shimmer 1.4s infinite', backgroundSize: '200% 100%', backgroundImage: 'linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 75%)' }} />
-                  </div>
                 </div>
               </div>
             ))}
           </div>
-        ) : filteredCars.length > 0 ? (
-          <div className="fleet-grid">
-            {filteredCars.map((car) => (
-              <div className="car-card" key={car.id || car._id}>
-                <div className="car-card-image" style={renderImageStyle(car.image)}>
-                  <div className="car-tag">{car.type}</div>
-                  <div className="car-card-specs-overlay">
-                    <span>{car.speed}</span>
-                    <span className="spec-dot"></span>
-                    <span>{car.acceleration} (0-100)</span>
-                  </div>
-                </div>
-
-                <div className="car-card-content">
-                  <div className="car-card-rating">
-                    <Star className="star-icon" size={14} fill="currentColor" />
-                    <span>{car.rating || 4.9}</span>
-                    <span className="review-count">({car.reviewsCount || car.reviews || 12} reviews)</span>
-                  </div>
-
-                  <h3 className="car-title">{car.name}</h3>
-
-                  <div className="car-specs-grid">
-                    <div className="spec-item">
-                      <span className="spec-label">Trans</span>
-                      <span className="spec-value">{car.transmission}</span>
+        ) : isCategorizedSectionView ? (
+          // ── Categorized Sections View (When Viewing All) ────────────────
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '50px' }}>
+            {CATEGORIES.slice(1).map(cat => {
+              const catCars = allCarsList.filter(c => c.type === cat.id);
+              return (
+                <div key={cat.id}>
+                  <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    flexWrap: 'wrap', gap: '12px',
+                    marginBottom: '20px', paddingBottom: '12px',
+                    borderBottom: '1px solid rgba(255,255,255,0.08)',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '24px' }}>{cat.icon}</span>
+                      <div>
+                        <h3 style={{ fontSize: 'clamp(17px, 3.5vw, 20px)', fontWeight: 800, color: '#fff', margin: 0 }}>
+                          {cat.label} Fleet
+                        </h3>
+                        <p style={{ fontSize: '13px', color: '#9ca3af', margin: '2px 0 0' }}>{cat.desc}</p>
+                      </div>
                     </div>
-                    <div className="spec-item">
-                      <span className="spec-label">Engine</span>
-                      <span className="spec-value">{car.fuel}</span>
-                    </div>
-                    <div className="spec-item">
-                      <span className="spec-label">Seats</span>
-                      <span className="spec-value">{car.seats} Seats</span>
-                    </div>
-                  </div>
-
-                  <div className="car-card-footer">
-                    <div>
-                      <span className="price-value">${car.pricePerDay || car.price}</span>
-                      <span className="price-period">/ day</span>
-                    </div>
-                    <button className="btn-rent-card" onClick={() => onRentClick(car)}>
-                      <span>Rent Now</span>
-                      <ArrowRight size={14} />
+                    <button
+                      onClick={() => setSelectedType(cat.id)}
+                      style={{
+                        background: 'rgba(0,242,254,0.1)', border: '1px solid rgba(0,242,254,0.25)',
+                        color: '#00f2fe', padding: '6px 14px', borderRadius: '8px',
+                        fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                      }}
+                    >
+                      View All {catCars.length} {cat.label} →
                     </button>
                   </div>
+
+                  <div className="fleet-grid">
+                    {catCars.map(renderCarCard)}
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+        ) : filteredCars.length > 0 ? (
+          // ── Filtered Single Grid ────────────────────────────────────────
+          <div>
+            {selectedType !== 'All' && (
+              <div style={{
+                background: 'rgba(18,20,29,0.6)', border: '1px solid rgba(255,255,255,0.06)',
+                borderRadius: '16px', padding: '16px 24px', marginBottom: '24px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px'
+              }}>
+                <div>
+                  <h3 style={{ color: '#fff', fontSize: '18px', fontWeight: 800, margin: 0 }}>
+                    {CATEGORIES.find(c => c.id === selectedType)?.icon} {selectedType} Fleet ({filteredCars.length} Available)
+                  </h3>
+                  <p style={{ color: '#9ca3af', fontSize: '13px', margin: '4px 0 0' }}>
+                    {CATEGORIES.find(c => c.id === selectedType)?.desc}
+                  </p>
+                </div>
+                <button
+                  onClick={() => { setSelectedType('All'); setSelectedBrand('All'); setSearchQuery(''); }}
+                  style={{
+                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#9ca3af', padding: '6px 14px', borderRadius: '8px',
+                    fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  ← Show All 50 Cars
+                </button>
               </div>
-            ))}
+            )}
+
+            <div className="fleet-grid">
+              {filteredCars.map(renderCarCard)}
+            </div>
           </div>
         ) : (
           <div className="no-cars-found">
             <h3>No Vehicles Found</h3>
-            <p>Try adjusting your search filters or price range to find a matching car.</p>
+            <p>Try adjusting your search filters, category, or price range to find a matching car.</p>
+            <button
+              className="btn-primary"
+              style={{ marginTop: '16px', padding: '8px 20px' }}
+              onClick={() => { setSelectedType('All'); setSelectedBrand('All'); setSearchQuery(''); setPriceRange(2500); }}
+            >
+              Reset All Filters
+            </button>
           </div>
         )}
       </section>
-
 
       {/* Why Choose Us */}
       <section className="benefits-section">
