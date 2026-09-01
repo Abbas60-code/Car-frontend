@@ -230,7 +230,9 @@ export default function About({ setPage, initialTab = 'story' }) {
   const handleStatClick = (statId) => {
     if (statId === 'locations') {
       setActiveTab('showrooms');
-      document.querySelector('.about-main-section')?.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        document.querySelector('.about-main-section')?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
     } else if (statId === 'fleet') {
       setPage('home');
       setTimeout(() => {
@@ -238,12 +240,14 @@ export default function About({ setPage, initialTab = 'story' }) {
       }, 100);
     } else if (statId === 'clients') {
       setActiveTab('story');
-      document.querySelector('.about-main-section')?.scrollIntoView({ behavior: 'smooth' });
     } else {
       setActiveTab('pillars');
-      document.querySelector('.about-main-section')?.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  // Extracted before return to avoid IIFE anti-pattern in JSX
+  const currentShowroom = selectedShowroom || SHOWROOMS[0];
+  const currentMilestone = MILESTONES[activeMilestone] || MILESTONES[0];
 
   return (
     <div className="about-page-wrapper">
@@ -434,156 +438,142 @@ export default function About({ setPage, initialTab = 'story' }) {
         )}
 
         {/* TAB 3: FLEET MILESTONES */}
-        {activeTab === 'milestones' && (() => {
-          const currentMilestone = MILESTONES[activeMilestone] || MILESTONES[0];
-          return (
-            <div className="tab-content-container fade-in">
-              <div className="text-center-header">
-                <span className="section-subheading">OUR JOURNEY & INNOVATION</span>
-                <h2 className="section-heading">Evolution of Velocity (2018 - 2026)</h2>
-                <p className="section-subtext">Select a year below to explore how we scaled into North America's leading exotic showroom.</p>
-              </div>
+        {activeTab === 'milestones' && (
+          <div className="tab-content-container fade-in">
+            <div className="text-center-header">
+              <span className="section-subheading">OUR JOURNEY & INNOVATION</span>
+              <h2 className="section-heading">Evolution of Velocity (2018 - 2026)</h2>
+              <p className="section-subtext">Select a year below to explore how we scaled into North America's leading exotic showroom.</p>
+            </div>
 
-              {/* Timeline selector */}
-              <div className="timeline-selector-bar">
-                {MILESTONES.map((m, idx) => (
-                  <button
-                    key={m.year}
-                    className={`timeline-year-btn ${activeMilestone === idx ? 'active' : ''}`}
-                    onClick={() => setActiveMilestone(idx)}
+            <div className="timeline-selector-bar">
+              {MILESTONES.map((m, idx) => (
+                <button
+                  key={m.year}
+                  className={`timeline-year-btn ${activeMilestone === idx ? 'active' : ''}`}
+                  onClick={() => setActiveMilestone(idx)}
+                >
+                  <span className="year-number">{m.year}</span>
+                  <span className="year-dot"></span>
+                </button>
+              ))}
+            </div>
+
+            <div className="milestone-display-card">
+              <div className="milestone-content-left">
+                <div className="milestone-year-badge">{currentMilestone.year} MILESTONE</div>
+                <h3 className="milestone-title">{currentMilestone.title}</h3>
+                <p className="milestone-desc">{currentMilestone.desc}</p>
+                <h4 className="milestone-highlights-heading">Key Achievements:</h4>
+                <ul className="milestone-highlights-list">
+                  {(currentMilestone.highlights || []).map((h, i) => (
+                    <li key={i}>
+                      <Check size={16} className="h-icon" />
+                      <span>{h}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="milestone-content-right">
+                <div className="milestone-stats-box">
+                  <Sparkles size={32} className="milestone-sparkle" />
+                  <div className="milestone-box-num">Stage 0{activeMilestone + 1}</div>
+                  <div className="milestone-box-label">Continuous Automotive Innovation</div>
+                  <div className="milestone-progress-bar">
+                    <div
+                      className="milestone-progress-fill"
+                      style={{ width: `${((activeMilestone + 1) / MILESTONES.length) * 100}%` }}
+                    ></div>
+                  </div>
+                  <span className="milestone-progress-txt">{((activeMilestone + 1) / MILESTONES.length) * 100}% Completion</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: GLOBAL SHOWROOMS */}
+        {activeTab === 'showrooms' && (
+          <div className="tab-content-container fade-in">
+            <div className="text-center-header">
+              <span className="section-subheading">WORLDWIDE PRESENCE</span>
+              <h2 className="section-heading">Our Flagship Hubs & Locations</h2>
+              <p className="section-subtext">Visit any of our state-of-the-art showrooms for a private vehicle viewing or lounge key pickup.</p>
+            </div>
+
+            {bookingLocationMsg && (
+              <div className="showroom-alert-box">
+                <Sparkles size={18} />
+                <span>{bookingLocationMsg}</span>
+              </div>
+            )}
+
+            <div className="showrooms-layout">
+              <div className="showrooms-list">
+                {SHOWROOMS.map((s) => (
+                  <div
+                    key={s.id}
+                    className={`showroom-list-item ${currentShowroom.id === s.id ? 'active' : ''}`}
+                    onClick={() => setSelectedShowroom(s)}
                   >
-                    <span className="year-number">{m.year}</span>
-                    <span className="year-dot"></span>
-                  </button>
+                    <div className="s-city-row">
+                      <span className="s-city">{s.city}</span>
+                      <span className="s-status-badge">{s.status}</span>
+                    </div>
+                    <div className="s-name">{s.name}</div>
+                    <div className="s-address"><MapPin size={14} /> {s.address}</div>
+                  </div>
                 ))}
               </div>
 
-              {/* Selected Milestone Card */}
-              <div className="milestone-display-card">
-                <div className="milestone-content-left">
-                  <div className="milestone-year-badge">{currentMilestone.year} MILESTONE</div>
-                  <h3 className="milestone-title">{currentMilestone.title}</h3>
-                  <p className="milestone-desc">{currentMilestone.desc}</p>
-                  
-                  <h4 className="milestone-highlights-heading">Key Achievements:</h4>
-                  <ul className="milestone-highlights-list">
-                    {(currentMilestone.highlights || []).map((h, i) => (
-                      <li key={i}>
-                        <Check size={16} className="h-icon" />
-                        <span>{h}</span>
-                      </li>
-                    ))}
-                  </ul>
+              <div className="showroom-preview-card">
+                <div className="showroom-img-container">
+                  <img
+                    src={currentShowroom.image}
+                    alt={currentShowroom.name}
+                    className="showroom-img"
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=800&q=80';
+                    }}
+                  />
+                  <div className="showroom-img-overlay">
+                    <span className="showroom-city-tag">{currentShowroom.city}</span>
+                  </div>
                 </div>
 
-                <div className="milestone-content-right">
-                  <div className="milestone-stats-box">
-                    <Sparkles size={32} className="milestone-sparkle" />
-                    <div className="milestone-box-num">Stage 0{activeMilestone + 1}</div>
-                    <div className="milestone-box-label">Continuous Automotive Innovation</div>
-                    <div className="milestone-progress-bar">
-                      <div 
-                        className="milestone-progress-fill" 
-                        style={{ width: `${((activeMilestone + 1) / MILESTONES.length) * 100}%` }}
-                      ></div>
-                    </div>
-                    <span className="milestone-progress-txt">{((activeMilestone + 1) / MILESTONES.length) * 100}% Completion</span>
+                <div className="showroom-body">
+                  <h3>{currentShowroom.name}</h3>
+                  <div className="s-detail-row">
+                    <MapPin size={16} className="s-icon" />
+                    <span>{currentShowroom.address}</span>
+                  </div>
+                  <div className="s-detail-row">
+                    <Phone size={16} className="s-icon" />
+                    <span>{currentShowroom.phone}</span>
+                  </div>
+                  <div className="s-detail-row">
+                    <Clock size={16} className="s-icon" />
+                    <span>{currentShowroom.hours}</span>
+                  </div>
+                  <div className="featured-models-box">
+                    <span className="fm-label">Featured Models on Floor:</span>
+                    <p className="fm-text">{currentShowroom.featured}</p>
+                  </div>
+                  <div className="showroom-actions">
+                    <button className="btn-primary" onClick={() => handleShowroomVisit(currentShowroom)}>
+                      <Calendar size={16} style={{ marginRight: '6px' }} />
+                      Book Private Viewing
+                    </button>
+                    <a href={`tel:${currentShowroom.phone}`} className="btn-secondary">
+                      <Phone size={16} style={{ marginRight: '6px' }} />
+                      Call Hub
+                    </a>
                   </div>
                 </div>
               </div>
             </div>
-          );
-        })()}
-
-        {/* TAB 4: GLOBAL SHOWROOMS */}
-        {activeTab === 'showrooms' && (() => {
-          const currentShowroom = selectedShowroom || SHOWROOMS[0];
-          return (
-            <div className="tab-content-container fade-in">
-              <div className="text-center-header">
-                <span className="section-subheading">WORLDWIDE PRESENCE</span>
-                <h2 className="section-heading">Our Flagship Hubs & Locations</h2>
-                <p className="section-subtext">Visit any of our state-of-the-art showrooms for a private vehicle viewing or lounge key pickup.</p>
-              </div>
-
-              {bookingLocationMsg && (
-                <div className="showroom-alert-box">
-                  <Sparkles size={18} />
-                  <span>{bookingLocationMsg}</span>
-                </div>
-              )}
-
-              <div className="showrooms-layout">
-                {/* Showrooms List */}
-                <div className="showrooms-list">
-                  {SHOWROOMS.map((s) => (
-                    <div 
-                      key={s.id} 
-                      className={`showroom-list-item ${currentShowroom.id === s.id ? 'active' : ''}`}
-                      onClick={() => setSelectedShowroom(s)}
-                    >
-                      <div className="s-city-row">
-                        <span className="s-city">{s.city}</span>
-                        <span className="s-status-badge">{s.status}</span>
-                      </div>
-                      <div className="s-name">{s.name}</div>
-                      <div className="s-address"><MapPin size={14} /> {s.address}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Showroom Detail Preview Card */}
-                <div className="showroom-preview-card">
-                  <div className="showroom-img-container">
-                    <img 
-                      src={currentShowroom.image} 
-                      alt={currentShowroom.name} 
-                      className="showroom-img"
-                      onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=800&q=80';
-                      }}
-                    />
-                    <div className="showroom-img-overlay">
-                      <span className="showroom-city-tag">{currentShowroom.city}</span>
-                    </div>
-                  </div>
-
-                  <div className="showroom-body">
-                    <h3>{currentShowroom.name}</h3>
-                    <div className="s-detail-row">
-                      <MapPin size={16} className="s-icon" />
-                      <span>{currentShowroom.address}</span>
-                    </div>
-                    <div className="s-detail-row">
-                      <Phone size={16} className="s-icon" />
-                      <span>{currentShowroom.phone}</span>
-                    </div>
-                    <div className="s-detail-row">
-                      <Clock size={16} className="s-icon" />
-                      <span>{currentShowroom.hours}</span>
-                    </div>
-
-                    <div className="featured-models-box">
-                      <span className="fm-label">Featured Models on Floor:</span>
-                      <p className="fm-text">{currentShowroom.featured}</p>
-                    </div>
-
-                    <div className="showroom-actions">
-                      <button className="btn-primary" onClick={() => handleShowroomVisit(currentShowroom)}>
-                        <Calendar size={16} style={{ marginRight: '6px' }} />
-                        Book Private Viewing
-                      </button>
-                      <a href={`tel:${currentShowroom.phone}`} className="btn-secondary">
-                        <Phone size={16} style={{ marginRight: '6px' }} />
-                        Call Hub
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
+          </div>
+        )}
       </section>
 
       {/* ─── Executive Leadership Team Section ──────────────────────── */}
