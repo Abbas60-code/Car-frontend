@@ -201,13 +201,22 @@ const FAQS = [
   }
 ];
 
-export default function About({ setPage }) {
-  const [activeTab, setActiveTab] = useState('story');
+export default function About({ setPage, initialTab = 'story' }) {
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [activeMilestone, setActiveMilestone] = useState(4); // default latest 2026
   const [selectedTeamMember, setSelectedTeamMember] = useState(null);
   const [openFaq, setOpenFaq] = useState(null);
   const [selectedShowroom, setSelectedShowroom] = useState(SHOWROOMS[0]);
   const [bookingLocationMsg, setBookingLocationMsg] = useState('');
+
+  useEffect(() => {
+    if (window.location.hash === '#showrooms' || window.location.hash === '#locations') {
+      setActiveTab('showrooms');
+      setTimeout(() => {
+        document.querySelector('.about-main-section')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, []);
 
   const toggleFaq = (idx) => {
     setOpenFaq(openFaq === idx ? null : idx);
@@ -216,6 +225,24 @@ export default function About({ setPage }) {
   const handleShowroomVisit = (showroom) => {
     setBookingLocationMsg(`Visit request noted for ${showroom.name}! Our concierge will contact you shortly.`);
     setTimeout(() => setBookingLocationMsg(''), 5000);
+  };
+
+  const handleStatClick = (statId) => {
+    if (statId === 'locations') {
+      setActiveTab('showrooms');
+      document.querySelector('.about-main-section')?.scrollIntoView({ behavior: 'smooth' });
+    } else if (statId === 'fleet') {
+      setPage('home');
+      setTimeout(() => {
+        document.getElementById('showroom')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else if (statId === 'clients') {
+      setActiveTab('story');
+      document.querySelector('.about-main-section')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      setActiveTab('pillars');
+      document.querySelector('.about-main-section')?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -259,7 +286,13 @@ export default function About({ setPage }) {
           {STATS.map((stat) => {
             const IconComp = stat.icon;
             return (
-              <div className="stat-card" key={stat.id}>
+              <div 
+                className="stat-card" 
+                key={stat.id}
+                onClick={() => handleStatClick(stat.id)}
+                style={{ cursor: 'pointer' }}
+                title={`Click to view ${stat.label}`}
+              >
                 <div className="stat-icon-box">
                   <IconComp size={22} />
                 </div>

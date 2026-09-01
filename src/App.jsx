@@ -211,7 +211,17 @@ function App() {
 
         <nav className="nav-links">
           <span className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => setPage('home')}>Home</span>
-          <a href="#showroom" className="nav-link" onClick={() => setPage('home')}>Showroom</a>
+          <span
+            className="nav-link"
+            onClick={() => {
+              setPage('home');
+              setTimeout(() => {
+                document.getElementById('showroom')?.scrollIntoView({ behavior: 'smooth' });
+              }, 100);
+            }}
+          >
+            Showroom
+          </span>
           <span className={`nav-link ${page === 'about' ? 'active' : ''}`} onClick={() => setPage('about')}>About Us</span>
           <span className={`nav-link ${page === 'garage' ? 'active' : ''}`} onClick={() => setPage('garage')}>My Garage</span>
           <span
@@ -264,7 +274,13 @@ function App() {
       {/* Mobile Navigation Drawer */}
       <nav className={`mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
         <span className={`nav-link ${page === 'home' ? 'active' : ''}`} onClick={() => { setPage('home'); setMobileMenuOpen(false); }}>🏠 Home</span>
-        <span className="nav-link" onClick={() => { setPage('home'); setMobileMenuOpen(false); }}>🚗 Showroom</span>
+        <span className="nav-link" onClick={() => {
+          setPage('home');
+          setMobileMenuOpen(false);
+          setTimeout(() => {
+            document.getElementById('showroom')?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }}>🚗 Showroom</span>
         <span className={`nav-link ${page === 'about' ? 'active' : ''}`} onClick={() => { setPage('about'); setMobileMenuOpen(false); }}>ℹ️ About Us</span>
         <span className={`nav-link ${page === 'garage' ? 'active' : ''}`} onClick={() => { setPage('garage'); setMobileMenuOpen(false); }}>🔑 My Garage</span>
         <span className={`nav-link ${page === 'contact' ? 'active' : ''}`} onClick={() => {
